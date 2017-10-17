@@ -1,0 +1,23 @@
+html:
+  - form: id="form0" data-parsley-validate
+    fieldset:
+      - radio: help-label="Wxgigo Server调试"
+        items:
+          - item: name="debug" label="Enable" value="enabled" v-model="debug"
+          - item: name="debug" label="Disable" value="disabled" v-model="debug"
+      - button: text="test" id="btn-test"
+javascript:
+  - inline: |
+      // general config
+      var general = new Vue({
+          el: '#form0',
+          data:{
+              'debug': 'enabled',
+          }
+      });
+
+      $("#btn-test").on("click", function(){
+        console.log("in");
+        alertify.alert("test");
+      });
+

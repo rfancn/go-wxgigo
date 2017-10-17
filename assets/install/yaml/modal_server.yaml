@@ -1,0 +1,109 @@
+html:
+  - modal: id="modal-server"
+    header: "Server Configuration"
+    body:
+      - form: id="form-server" data-parsley-validate
+        fieldset:
+          - checkbox: help-label="Server Role" checkbox-style="inline"
+            items:
+              - item: name="role" label="Agent Server" value="agent" v-model="roles"
+              - item: name="role" label="Broker Server" value="broker" v-model="roles"
+              - item: name="role" label="App Server" value="app" v-model="roles"
+          - input: >
+                 help-label="Server Hostname/IP" name="host" placeholder="Server hostname or IP" v-model="host" required
+                 data-parsley-trigger="focusout" data-parsley-type="url"
+          - input: >
+                 help-label="Server SSH Port" name="port" placeholder="Server SSH Port" v-model="port" required
+                 data-parsley-trigger="focusout" data-parsley-type="number"
+          - input: >
+                 help-label="Server SSH Username" name="username" placeholder="SSH Username" v-model="username" required
+                 data-parsley-trigger="focusout" data-parsley-type="alphanum"
+          - input: >
+                 help-label="Server SSH Password" name="password" type="password" placeholder="SSH password" v-model="password"
+    footer:
+      - button: id="btn-action" button-style="primary"
+      - button: data-dismiss="modal" text="Close"
+
+javascript:
+    - inline: |
+        var server = new Vue({
+              el: "#form-server",
+              data: {
+                  'roles': ['agent', 'broker', 'app'],
+                  'host': '',
+                  'port': 22,
+                  'username': 'root',
+                  'password': '',
+              },
+          });
+
+          var row_selected = undefined;
+          $('#modal-server').on('show.bs.modal', function (event) {
+              var button = $(event.relatedTarget) // Button that triggered the modal
+              action = button.data('action') // Extract info from data-action attributes from button
+
+              if(action == "Edit"){
+                  // make sure edit modal open when we select the row
+                  row_selected = table_servers.row({selected: true});
+                  if(row_selected.count() == 0){
+                    return false;
+                  }
+
+                  // make sure Vue instance $data show what's we selected
+                  server.host = row_selected.data()['host'];
+                  server.port = row_selected.data()['port'];
+                  server.roles = row_selected.data()['roles'];
+              }
+
+              // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+              // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+              var modal = $(this)
+              modal.find('.modal-title').text('Sever ' + action);
+              $('#btn-action').text(action);
+          });
+
+          function add_server(){
+              //Check if a value is in the data in the columns 'host' can be found:
+              // here column 0 is the index of 'host' column
+              var idx = table_servers.columns(0).data().eq(0).indexOf(server.host);
+              // if we can found the duplicate one, then alert and skip it
+              if(idx > -1){
+                  alertify.alert("Server: ["+ server.host + "] already exist!");
+                  return false;
+              }
+
+              table_servers.row.add({
+                  'host': server.host,
+                  'port': server.port,
+                  'username': server.username,
+                  'password': server.password,
+                  'roles': server.roles,
+              }).draw();
+          }
+
+          function edit_server(){
+              // set selected row with new value
+              var row_data = row_selected.data();
+              row_data.host = server.host;
+              row_data.port = server.port;
+              row_data.roles = server.roles;
+
+              // update the table
+              row_selected.invalidate().draw();
+          }
+
+          $('#btn-action').on( 'click', function(){
+              var btn_text = $('#btn-action').text();
+              if(btn_text === "Add"){
+                // validate if all required are inputs correctly
+                if($('#form-server').parsley().validate()){
+                  add_server();
+                }else{
+                  alertify.alert("Please correct the errors marked as red!");
+                }
+              }else{
+                edit_server();
+              };
+
+              $('#modal-server').modal('hide');
+          });

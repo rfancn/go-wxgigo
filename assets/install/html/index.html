@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="smartwizard">
+    <ul>
+        <li><a href="#step1">Step 1<br /><small>General Configuration</small></a></li>
+        <li><a href="#step2">Step 2<br /><small>Wechat Server Configuration</small></a></li>
+        <li><a href="#step3">Step 3<br /><small>Celery Configuration</small></a></li>
+        <li><a href="#step4">Step 4<br /><small>Deploy Servers Configuration</small></a></li>
+    </ul>
+    <div>
+        <div id="step1">{{ wizard.general|safe }}</div>
+        <div id="step2">{{ wizard.wxmp|safe }}</div>
+        <div id="step3">{{ wizard.celery|safe }}</div>
+        <div id="step4">{{ wizard.server|safe }}</div>
+    </div>
+</div>
+
+{{ modal.html|safe }}
+{% endblock %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="/assets/vendors/SmartWizard/dist/css/smart_wizard.min.css">
+    <link href="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.11/css/alertify.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/datatables/1.10.16/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.2.2/css/select.dataTables.min.css">
+    <link rel="stylesheet" href="/assets/install/css/install.css">
+{% endblock %}
+
+{% block custom_js %}
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/assets/vendors/SmartWizard/dist/js/jquery.smartWizard.min.js"></script>
+    <script src="https://cdn.bootcss.com/parsley.js/2.7.2/parsley.min.js"></script>
+    <script src="/assets/vendors/Parsley.js/dist/i18n/zh_cn.js"></script>
+    <script src="https://cdn.bootcss.com/alertifyjs-alertify.js/1.0.11/js/alertify.js"></script>
+    <script src="/assets/install/js/ajax-progress.js"></script>
+    <script src="https://cdn.bootcss.com/vue/2.4.2/vue.min.js"></script>
+    {{ wizard.externalJs|safe }}
+    <script>
+    {{ wizard.inlineJs|safe }}
+    {{ modal.inlineJs|safe }}
+    </script>
+    <script src="/assets/install/js/main.js"></script>
+{% endblock %}

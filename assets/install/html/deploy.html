@@ -1,0 +1,23 @@
+<div id="step5">
+<form id="form5" class="form-horizontal" data-parsley-validate="" novalidate="">
+    <div v-for="srv in servers" class="panel panel-info">
+        <div class="panel-heading">{% raw %}{{ srv.host }}{% endraw %}</div>
+        <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">SSH port</label>
+                    <div class="col-sm-9">
+                        <input v-model="srv.port" name="port" class="form-control" placeholder="SSH port"  data-parsley-type="num" data-parsley-trigger="focusout" required>
+                    </div>
+                    <label class="col-sm-3 control-label">SSH Username</label>
+                    <div class="col-sm-9">
+                        <input v-model="srv.username" name="username" class="form-control" placeholder="SSH username"  data-parsley-trigger="focusout" required>
+                    </div>
+                    <label class="col-sm-3 control-label">SSH Password</label>
+                    <div class="col-sm-9">
+                        <input v-model="srv.password" name="password" class="form-control" placeholder="SSH password" type="password" data-parsley-trigger="focusout" required>
+                    </div>
+                </div>
+        </div>
+    </div>
+</form>
+</div>

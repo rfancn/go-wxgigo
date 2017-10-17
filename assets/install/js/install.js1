@@ -1,0 +1,333 @@
+//global wxmp_hostname which may be referenced in message broker or result backend
+var wxmp_hostname = "";
+
+// message broker skeleton
+var mb_rabbitmq = {
+    'transport': 'rabbitmq',
+    'host': '',
+    'port': 5672,
+    'virtualhost': '',
+    'userid': '',
+    'password': '',
+}
+
+var mb_redis = {
+    'transport': 'redis',
+    'host': '',
+    'port': 6379,
+    'dbnum': 0,
+    'password': '',
+}
+
+var MyVue = Vue.extend({
+  delimiters: ['[[', ']]']
+});
+
+// general config
+var general = new MyVue({
+    el: '#step1',
+    data:{
+        'debug': 'enabled',
+        'logfile': '/var/log/wxgigo.log',
+    }
+});
+
+//Wechat Media Platform config
+var wxmp = new MyVue({
+    el: '#step2',
+    data:{
+        'url': '',
+        'token': '',
+        'key':'',
+        'method': 'clear',
+    },
+    computed:{
+        // a computed getter
+        host: function () {
+            // `this` points to the vm instance
+            return this.url.replace(/(http|https):\/\//, "");
+        }
+    },
+});
+
+// MessageBroker config
+var mb = new MyVue({
+    el: '#step3',
+    data:{
+        'type': 'rabbitmq',
+        'transport': mb_rabbitmq,
+    },
+    computed: {
+        // whenever question changes, this function will run
+        port: function () {
+            return this.get_mb_port();
+        }
+    },
+    watch:{
+        host: function(){
+            ssh.change_host(this.host);
+        }
+    },
+    methods: {
+        get_mb_port: function(){
+            var port = 0;
+            if(this.transport === "raibbitmq"){
+                port = 5672;
+            }else if(this.transport === "redis"){
+                port = 6379;
+            }
+            return port;
+        },
+    },
+});
+
+// Database server config
+var db = new MyVue({
+    el: '#step4',
+    data:{
+        'host': '',
+        'password': '',
+        'dbnum': 0,
+        'port': 6379,
+    }
+});
+
+// SSH deployment config
+var ssh = new Vue({
+    el: '#step5',
+    data:{
+    },
+    computed:{
+        servers: function(){
+            return [wxmp.host, mb.host, rb.host]
+        },
+    },
+    methods: {
+        init: function(){
+            var hosts = this.get_unique_hosts();
+            for(var i=0; i<hosts.length; i++){
+                var srv = {};
+                srv.username = 'root';
+                srv.host = hosts[i];
+                srv.port = 22;
+
+                this.servers.push(srv)
+            }
+        },
+        // remove the duplicate hosts and only leaves unique hosts which need input ssh credentials
+        get_unique_hosts: function(){
+            var all_hosts = [wxmp.host, mb.host, rb.host];
+            var unique_hosts = [];
+            $.each(all_hosts, function(index, elem){
+                if ($.inArray(elem, unique_hosts) == -1){
+                    unique_hosts.push(elem);
+                }
+            });
+            return unique_hosts;
+        },
+        //
+        change_host: function(new_host){
+            console.log("change ssh's host to" + new_host);
+        }
+
+    },
+});
+
+var progress = {
+    // starting interval - 1 seconds
+    tid: -1,
+    interval: 1000,
+    init: function(){
+        waitingDialog.show('Progressing...', {dialogSize: 'sm'});
+        this.start();
+    },
+    // kicks off the setTimeout
+    start: function(){
+        console.log("start progress");
+        this.tid = setTimeout(
+           $.proxy(this.fetch, this), // ensures 'this' is the poller obj inside getData, not the window object
+           this.interval
+        );
+    },
+    // get AJAX data + respond to it
+    fetch: function(){
+       var self = this;
+       $.ajax({
+           url: '/install/progress/',
+           success: function(data){
+                console.log("fetch success");
+                waitingDialog.progress(data);
+           },
+           complete: function(){
+                self.start();
+           },
+       });
+    },
+    // stop timeout
+    stop: function(){
+        console.log("stop progress");
+        clearTimeout(this.tid);
+    },
+    destroy: function(){
+        console.log("destroy progress");
+        clearTimeout(this.tid);
+        waitingDialog.hide();
+    },
+    finish: function(text){
+        console.log("finish progress");
+        clearTimeout(this.tid);
+        if(typeof text !== 'undefined' ){
+            waitingDialog.message(text);
+        }else{
+            waitingDialog.message("Complete Successfully!");
+        }
+        waitingDialog.progress(100);
+    },
+
+};
+
+function init_step_mb(){
+    if($.trim(mb.host).length === 0){
+        mb.host = wxmp.host;
+    }
+}
+
+function init_step_rb(){
+    if($.trim(rb.host).length === 0){
+        rb.host = wxmp.host;
+    }
+}
+
+function init_step_ssh(){
+    // remove the duplicate hosts and only leaves unique hosts which need input ssh credentials
+    var all_hosts = [wxmp.host, mb.host, rb.host];
+    var unique_hosts = [];
+    $.each(all_hosts, function(index, elem){
+        if ($.inArray(elem, unique_hosts) == -1){
+            unique_hosts.push(e);
+        }
+    });
+
+    // remove the unused one
+    var remain_hosts = [];
+    for(var key in ssh.servers){
+        var cur_srv = ssh_info.servers[key];
+        if ($.inArray(cur_srv.host, unique_hosts) === -1) {
+            delete ssh_info.servers[key];
+        }
+        remain_servers.push(cur_srv.host);
+    }
+
+    // update ssh_info Vue object
+    for(var i=0; i < hosts.length; i++){
+        if($.inArray(hosts[i], remain_servers) === -1){
+            // add the missing one
+            var new_srv = {};
+            new_srv.host = hosts[i];
+            new_srv.username = 'root';
+            new_srv.password = '';
+            new_srv.port = 22;
+
+            Vue.set(ssh_info.servers, hosts[i], new_srv);
+        }
+    }
+}
+
+function validate_form(stepNumber){
+    var form = $('#form' + stepNumber);
+    return form.parsley().validate();
+}
+
+function on_click_finish(){
+    // validate all forms
+    var errorSteps = [];
+    forms = ['form0', 'form1', 'form2', 'form3'];
+    for(var i=0;i<forms.length;i++){
+        if(!validate_form(forms[i])){
+            errorSteps.push(i+1);
+        }
+    }
+
+    if(errorSteps.length > 0){
+        //$('#smartwizard').smartWizard("stepState", errorSteps, "error");
+        alertify.alert("You need correct the errors in step"+errorSteps);
+        return false;
+    }
+
+    $.ajax({
+            url: '/install/save/',
+            dataType: 'json',
+            type: 'POST',
+            beforeSend: function(xhr, settings) {
+                progress.init();
+            },
+            success: function(data) {
+                console.log("success");
+                progress.finish();
+                setTimeout(function(){
+                    progress.destroy();
+                    window.location.replace(data);
+                }, 2000);
+            },
+            error: function(xhr, status){
+                console.log("error");
+                progress.destroy();
+            }
+    });
+
+    return true;
+}
+
+function init_smartwizard(){
+    $('#smartwizard').smartWizard({
+        keyNavigation:false, // Enable/Disable keyboard navigation(left and right keys are used if enabled)
+        toolbarSettings: {
+            toolbarExtraButtons: [
+                $('<button id="btn-finish"></button>').text('Finish').addClass('btn btn-primary').on('click', function(){
+                    on_click_finish();
+                }),
+            ],
+        },
+    });
+
+    $('#btn-finish').hide();
+
+    // Initialize the leaveStep event
+    $("#smartwizard").on("leaveStep", function(e, anchorObject, stepNumber, stepDirection) {
+        var isStepValidated = true;
+
+        // validate html when forward to next step
+        if(stepDirection === 'forward'){
+            isStepValidated = validate_step(stepNumber);
+        }
+
+        if(isStepValidated == false){
+            alertify.alert("You need correct the errors marked as red to continue!");
+            return false;
+        }
+
+        return true;
+    });
+
+    // Initialize the showStep event
+    $("#smartwizard").on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
+        // if we change to previous steps, then we need validate again
+        switch(stepNumber){
+            case 2:
+                init_step_mb();
+                break;
+            case 3:
+                init_step_rb();
+                break;
+            case 4:
+                //init_step_ssh();
+                // show finish button and set it's enabled status if validation is ok
+                $('#btn-finish').show();
+        }
+    });
+}
+
+$(document).ready(function(){
+    init_smartwizard();
+    //bind_widget_events();
+});
