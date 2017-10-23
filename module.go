@@ -3,29 +3,26 @@ package main
 import (
 	"fmt"
 	"github.com/flosch/pongo2"
-	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
 type Moduler interface {
-	Init(env *Env, router *httprouter.Router)
+	Init(env *Env)
 }
 
 type SysModule struct {
 	name string
 	env *Env
-	router *httprouter.Router
 }
 
-func (self *SysModule) Init(env *Env, router *httprouter.Router) {
+func (self *SysModule) Init(env *Env) {
 	self.env = env
-	self.router = router
 }
 
-func (self *SysModule) super(moduleName string, env *Env, router *httprouter.Router) {
+func (self *SysModule) super(moduleName string, env *Env) {
 	self.name = moduleName
 	env.moduleName = moduleName
-	self.Init(env, router)
+	self.Init(env)
 }
 
 func (self *SysModule) Render(templateFile string, context map[string]interface{}) string {
@@ -39,7 +36,16 @@ func (self *SysModule) Render(templateFile string, context map[string]interface{
 	return output
 }
 
-func (self *SysModule) RenderResponse(w http.ResponseWriter, templateFile string, context map[string]interface{}) {
+func (self *SysModule) ResponseRender(w http.ResponseWriter, templateFile string, context map[string]interface{}) {
 	output := self.Render(templateFile, context)
 	fmt.Fprint(w, output)
+}
+
+func (self *SysModule) ResponseText(w http.ResponseWriter, response string) {
+	fmt.Fprint(w, response)
+}
+
+func (self *SysModule) ResponseJson(w http.ResponseWriter, response string) {
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, response)
 }

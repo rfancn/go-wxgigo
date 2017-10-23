@@ -5,7 +5,6 @@ html:
         items:
           - item: name="debug" label="Enable" value="enabled" v-model="debug"
           - item: name="debug" label="Disable" value="disabled" v-model="debug"
-      - button: text="test" id="btn-test"
 javascript:
   - inline: |
       // general config
@@ -15,9 +14,3 @@ javascript:
               'debug': 'enabled',
           }
       });
-
-      $("#btn-test").on("click", function(){
-        console.log("in");
-        alertify.alert("test");
-      });
-

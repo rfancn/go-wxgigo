@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"github.com/julienschmidt/httprouter"
+	//"github.com/rs/cors"
 )
-
 
 func main() {
 	env := NewEnv()
@@ -13,12 +12,13 @@ func main() {
 		log.Fatal("Error prepare running env")
 	}
 
-	router := httprouter.New()
-	//server static assets file
-	router.ServeFiles("/assets/*filepath", http.Dir(env.assetsRootDir))
-
-	moduleManager := NewModuleManager(env, router)
+	moduleManager := NewModuleManager(env)
 	moduleManager.loadModules()
 
-	log.Fatal(http.ListenAndServe(":443", router))
+	//launch secure https server
+	go 	http.ListenAndServeTLS(":443", "cert.pem", "key.pem", env.secureRouter)
+
+	//launch http server
+	log.Fatal(http.ListenAndServe(":8890", env.httpRouter))
+
 }

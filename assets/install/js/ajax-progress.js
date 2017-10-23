@@ -158,14 +158,24 @@
 				}
 			}
 		},
-         /**
-          * Changes progress value
-          */
-        progress: function (value) {
+        /**
+         * Changes or displays current dialog percentage
+         */
+        percentage: function (newPercentage) {
+            if (typeof $dialog !== 'undefined') {
+                if (typeof newPercentage !== 'undefined') {
+                    return $dialog.find('.progress-bar').width(newPercentage).text(newPercentage);
+                }
+            }
+        },
+        /**
+         * Changes progress value
+         */
+        progress: function (data) {
                 if (typeof $dialog !== 'undefined') {
-                        if (typeof value !== 'undefined') {
-                        	    var percentage = value + '%';
-                                return $dialog.find('.progress-bar').width(percentage).text(percentage);
+                        if (typeof data !== 'undefined') {
+                        	    this.percentage(data.Percentage + '%');
+                            	this.message(data.Message);
                         }
                 }
         }

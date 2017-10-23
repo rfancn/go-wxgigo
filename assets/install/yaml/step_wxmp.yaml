@@ -12,9 +12,9 @@ html:
                data-parsley-trigger="focusout" data-parsley-type="alphanum" data-parsley-length="[43,43]"
       - radio:  help-label="消息加解密类型"
         items:
-          - item: name="msg_encrypt_method" label="明文模式" value="clear" v-model="secure_method"
-          - item: name="msg_encrypt_method" label="兼容模式" value="compatible" v-model="secure_method"
-          - item: name="msg_encrypt_method" label="安全模式（推荐）" value="secure" v-model="secure_method"
+          - item: name="msg_encrypt_method" label="明文模式" value="clear" v-model="method"
+          - item: name="msg_encrypt_method" label="兼容模式" value="compatible" v-model="method"
+          - item: name="msg_encrypt_method" label="安全模式（推荐）" value="secure" v-model="method"
 
 javascript:
   - inline: |
@@ -25,20 +25,7 @@ javascript:
               'url': '',
               'token': '',
               'key':'',
-              'secure_method': 'clear',
-          },
-          computed:{
-              // a computed getter
-              host: function () {
-                  var fake_a = document.createElement("a");
-                  fake_a.href = this.url;
-                  var find = ':' + fake_a.port;
-                  var re = new RegExp(find, 'g');
-                  var processed_url = this.url.replace(re, '');
-
-                  // `this` points to the vm instance
-                  return processed_url.replace(/(http|https):\/\//, "");
-              }
+              'method': 'secure',
           },
       });
 

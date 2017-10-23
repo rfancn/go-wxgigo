@@ -52,7 +52,13 @@ javascript:
                   // make sure Vue instance $data show what's we selected
                   server.host = row_selected.data()['host'];
                   server.port = row_selected.data()['port'];
+                  server.password = row_selected.data()['password'];
                   server.roles = row_selected.data()['roles'];
+              }
+
+              if(action == "Add"){
+                  //By default, the initial server.host set to be the wxmp.host
+                  server.host = getHostFromUrl(wxmp.url);
               }
 
               // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
@@ -61,6 +67,13 @@ javascript:
               modal.find('.modal-title').text('Sever ' + action);
               $('#btn-action').text(action);
           });
+
+          //extract host from url
+          function getHostFromUrl(url) {
+              var fake_a = document.createElement("a");
+              fake_a.href = url;
+              return fake_a.hostname;
+          }
 
           function add_server(){
               //Check if a value is in the data in the columns 'host' can be found:
@@ -81,11 +94,14 @@ javascript:
               }).draw();
           }
 
+
+
           function edit_server(){
               // set selected row with new value
               var row_data = row_selected.data();
               row_data.host = server.host;
               row_data.port = server.port;
+              row_data.password = server.password;
               row_data.roles = server.roles;
 
               // update the table
