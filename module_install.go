@@ -30,7 +30,8 @@ func (self *InstallModule) Init(env *Env) {
 
 	//all install module puts in secure https
 	self.env.secureRouter.GET("/install", self.ViewInstallIndex)
-	self.env.secureRouter.POST("/install/deploy", self.ViewInstallDeploy)
 	self.env.secureRouter.GET("/install/progress", self.ViewInstallProgress)
+	self.env.secureRouter.POST("/install/deploy", self.ViewInstallDeploy)
+	self.env.secureRouter.GET("/install/success", self.ViewTemplate("success.html"))
 }
 

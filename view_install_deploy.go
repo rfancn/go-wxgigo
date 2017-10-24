@@ -4,10 +4,8 @@ import (
 	"net/http"
 	"encoding/json"
 	"log"
-	"github.com/julienschmidt/httprouter"
-	"fmt"
-
 	"time"
+	"github.com/julienschmidt/httprouter"
 )
 
 type ConfigGeneral struct {

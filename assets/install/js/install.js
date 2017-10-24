@@ -12,12 +12,12 @@ function init_step_server(){
 var progress = {
     //flag to indicate whether it need to be destroyed or not
     //if it is true, then it will not start a new setTimeout func
-    todestory: false,
+    willStop: false,
     tid: -1,
     interval: 1000,
     init: function(){
         waitingDialog.show('Progressing...', {dialogSize: 'sm'});
-        this.todestory = false;
+        this.willStop = false;
         this.start();
     },
     // kicks off the setTimeout
@@ -39,7 +39,7 @@ var progress = {
            complete: function(){
                //if this progress don't need to be destroyed,
                // then continue start a timer
-                if (!self.todestory) {
+                if (!self.willStop) {
                     self.start();
                 }
            },
@@ -49,26 +49,16 @@ var progress = {
     stop: function(){
         console.log("stop progress");
         //mark no new setTimeout()
-        this.todestory = true;
+        this.willStop = true;
         clearTimeout(this.tid);
     },
     destroy: function(){
         console.log("destroy progress");
         //mark no new setTimeout()
-        this.todestory = true;
+        this.willStop = true;
         clearTimeout(this.tid);
         waitingDialog.hide();
     },
-    finish: function(text){
-        console.log("finish progress");
-        if(typeof text !== 'undefined' ){
-            waitingDialog.message(text);
-        }else{
-            waitingDialog.message("Complete Successfully!");
-        }
-        waitingDialog.percentage(100);
-    },
-
 };
 
 function getHttpsUrl(pathname) {
@@ -133,7 +123,6 @@ function on_click_finish(){
                         alertify.alert(data.Detail);
                         break;
                     case "success":
-                        progress.finish();
                         setTimeout(function(){
                             progress.destroy();
                             window.location.replace(data.Detail);
