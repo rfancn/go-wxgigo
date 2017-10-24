@@ -52,6 +52,19 @@ var progress = {
         this.willStop = true;
         clearTimeout(this.tid);
     },
+    // stop timeout
+    success: function(message){
+        console.log("show success");
+        this.stop();
+        var data = Array();
+        data.Percentage = 100;
+        if (message == undefined) {
+            data.Message = "Complete Successfully!";
+        }else{
+            data.Message = message;
+        }
+        waitingDialog.progress(data);
+    },
     destroy: function(){
         console.log("destroy progress");
         //mark no new setTimeout()
@@ -123,6 +136,7 @@ function on_click_finish(){
                         alertify.alert(data.Detail);
                         break;
                     case "success":
+                        progress.success();
                         setTimeout(function(){
                             progress.destroy();
                             window.location.replace(data.Detail);

@@ -9,19 +9,16 @@ func (self *InstallModule) createDelployRoutine(config *InstallConfig) <-chan ui
 	channelQuit := make(chan uint)
 	go func() {
 		self.updateProgress(10, "Begin deploy...")
-		time.Sleep(1 * time.Second)
+		//step1: verify configs
+		if ok := verifyInstallConfig(config); !ok {
+			log.Println("Failed to verify install configuration")
+		}
 
 		self.updateProgress(30, "step1...")
 		time.Sleep(3 * time.Second)
 
 		self.updateProgress(80, "step2...")
 		time.Sleep(5 * time.Second)
-		/**
-		//step1: verify configs
-		if ok := verifyInstallConfig(config); !ok {
-			log.Println("Failed to verify install configuration")
-		}
-		**/
 
 		//send signal to channelQuit to indicate routine has been finished
 		self.updateProgress(100, "Deploy done!")
