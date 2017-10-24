@@ -8,16 +8,17 @@ import (
 
 
 var internalProgress *ProgressInfo = &ProgressInfo{}
+var channelInstallProgress chan *ProgressInfo = make(chan *ProgressInfo)
 
-func routineInstallSave(config *InstallConfig) {
+func routineInstallSave(channelQuit chan uint, config *InstallConfig) {
 	outputProgress(10, "Begin deploy...")
-	time.Sleep(1 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	outputProgress(30, "step1...")
-	time.Sleep(3 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	outputProgress(80, "step2...")
-	time.Sleep(2 * time.Second)
+	time.Sleep(10 * time.Second)
 	/**
 	//step1: verify configs
 	if ok := verifyInstallConfig(config); !ok {
@@ -25,7 +26,8 @@ func routineInstallSave(config *InstallConfig) {
 	}
 	**/
 
-	channelInstallQuit <- 1
+	//send signal to channelQuit to indicate routine has been finished
+	channelQuit <- 1
 }
 
 func verifyInstallConfig(config *InstallConfig) bool {

@@ -15,8 +15,6 @@ type ProgressInfo struct {
 }
 
 var currentProgress *ProgressInfo
-var channelInstallProgress chan *ProgressInfo = make(chan *ProgressInfo)
-var channelInstallQuit chan uint = make(chan uint)
 
 func (self *InstallModule) ViewInstallProgress(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Println("in install progess")
@@ -27,7 +25,7 @@ func (self *InstallModule) ViewInstallProgress(w http.ResponseWriter, r *http.Re
 				fmt.Println("recevied progress info")
 				self.responseProgress(w)
 				return
-			case <-time.After(3 * time.Second):
+			case <-time.After(1 * time.Second):
 				fmt.Println("Timed out!")
 				self.responseProgress(w)
 				return

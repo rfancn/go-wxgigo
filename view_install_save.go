@@ -52,9 +52,12 @@ func (self *InstallModule) ViewInstallSave(w http.ResponseWriter, r *http.Reques
 		log.Println("Failed to decode install post data")
 	}
 
-	go routineInstallSave(config)
+	//launch install save routine
+	var channelQuit chan uint = make(chan uint)
+	go routineInstallSave(channelQuit, config)
 
-	<-channelInstallQuit
+	//stuck here for waiting for quit signal
+	<-channelQuit
 
 	fmt.Println("go to here")
 
