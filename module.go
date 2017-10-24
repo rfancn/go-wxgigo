@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/flosch/pongo2"
 	"net/http"
+	"encoding/json"
 )
 
 type Moduler interface {
@@ -45,7 +46,14 @@ func (self *SysModule) ResponseText(w http.ResponseWriter, response string) {
 	fmt.Fprint(w, response)
 }
 
-func (self *SysModule) ResponseJson(w http.ResponseWriter, response string) {
+func (self *SysModule) ResponseJson(w http.ResponseWriter, response interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, response)
+
+	js, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprint(w, string(js))
 }

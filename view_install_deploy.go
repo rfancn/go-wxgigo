@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"github.com/julienschmidt/httprouter"
-	//"fmt"
 	"fmt"
-	//"time"
+
+	"time"
 )
 
 type ConfigGeneral struct {
@@ -41,9 +41,30 @@ type InstallConfig struct {
 	Servers []ConfigServer `json:"server"`
 }
 
+type InstallResponse struct {
+	Result string
+	Detail string
+}
 
-func (self *InstallModule) ViewInstallSave(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	log.Println("in install save")
+func (self *InstallModule) ViewInstallDeploy(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	select {
+		case <-self.ChannelInstallBusy:
+			self.startDeploy(w,r,ps)
+		case <-time.After(100 * time.Millisecond):
+			self.abortDeploy(w,r,ps)
+	}
+}
+
+func (self *InstallModule) abortDeploy(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	log.Println("Deploy aborted")
+	self.Response.Result = "error"
+	self.Response.Detail = "There is a deploy instance already running!"
+
+	self.ResponseJson(w, self.Response)
+}
+
+func (self *InstallModule) startDeploy(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	log.Println("Deploy started")
 
 	config := &InstallConfig{}
 
@@ -52,16 +73,17 @@ func (self *InstallModule) ViewInstallSave(w http.ResponseWriter, r *http.Reques
 		log.Println("Failed to decode install post data")
 	}
 
-	//launch install save routine
-	var channelQuit chan uint = make(chan uint)
-	go routineInstallSave(channelQuit, config)
+	//launch install deploy routine
+	channelQuit := self.createDelployRoutine(config)
 
 	//stuck here for waiting for quit signal
 	<-channelQuit
 
-	fmt.Println("go to here")
+	self.Response.Result = "success"
+	self.Response.Detail = "/install/success"
+	self.ResponseJson(w, self.Response)
 
-	self.ResponseJson(w,"test")
+	self.ChannelInstallBusy <- false
 }
 
 

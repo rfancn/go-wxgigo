@@ -33,7 +33,7 @@ var progress = {
        $.ajax({
            url: '/install/progress',
            success: function(data){
-                console.log("fetch success:" + $.now());
+                console.log("fetch success");
                 waitingDialog.progress(data);
            },
            complete: function(){
@@ -107,7 +107,7 @@ function on_click_finish(){
     $.ajax({
             //url: getHttpsUrl("/install/save"),
             //crossDomain: true,
-            url: "/install/save",
+            url: "/install/deploy",
             dataType: 'json',
             contentType:"application/json; charset=utf-8",
             type: 'POST',
@@ -122,12 +122,24 @@ function on_click_finish(){
             },
             success: function(data) {
                 console.log("save success");
-                console.log(data);
-                progress.finish();
-                //setTimeout(function(){
-                //    progress.destroy();
-                //    //window.location.replace(data);
-                //}, 2000);
+                if (data == undefined){
+                    progress.destroy();
+                    return
+                }
+
+                switch(data.Result){
+                    case "error":
+                        progress.destroy();
+                        alertify.alert(data.Detail);
+                        break;
+                    case "success":
+                        progress.finish();
+                        setTimeout(function(){
+                            progress.destroy();
+                            window.location.replace(data.Detail);
+                        }, 2000);
+                        break;
+                }
             },
             error: function(xhr, status){
                 console.log("save error");
